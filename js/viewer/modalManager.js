@@ -55,13 +55,15 @@ function populateModalWithContent(modal, activeContainerFrame) {
 
   modalBody.innerHTML = ''; // Clear previous dynamic content
 
-  // Create and add a search input field above the tabs list
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.placeholder = 'Search tabs...';
-  searchInput.className = 'modal-search-input';
-  modalBody.appendChild(searchInput);
-
+  if (isChromeExtension) {
+    // Create and add a search input field above the tabs list
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search tabs...';
+    searchInput.className = 'modal-search-input';
+    modalBody.appendChild(searchInput);
+  }
+  
   const tabsContainer = document.createElement('div');
   tabsContainer.className = 'tabs-container';
   modalBody.appendChild(tabsContainer);
@@ -93,7 +95,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
   } else {
       // Web environment fallback: Display a static message or implement alternative logic
       const infoText = document.createElement('p');
-      infoText.textContent = 'This is a web environment. Chrome tabs cannot be queried.';
+      infoText.textContent = 'This is a web environment. Please download the Google Docs SplitView Chrome Extension to utilize dynamic tab switching.';
       tabsContainer.appendChild(infoText);
       
       // Optionally, implement a fallback mechanism, such as displaying static links or content
