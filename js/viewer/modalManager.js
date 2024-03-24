@@ -206,7 +206,7 @@ export function setupModalDismissal(modal, closeModalCallback) {
 // Planned functionality to update URL bar for easy sharing
 
 export function updateBrowserURL() {
-  const newURL = '';
+  let newURL;
   if (isChromeExtension) {
     newURL = 'viewer.html?urls=' + encodeAndJoinFrameURLs();
   } else {
