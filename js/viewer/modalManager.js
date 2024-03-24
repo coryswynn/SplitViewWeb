@@ -62,9 +62,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
     searchInput.placeholder = 'Search tabs...';
     searchInput.className = 'modal-search-input';
     modalBody.appendChild(searchInput);
-  } else {
-
-  };
+  }
 
   const tabsContainer = document.createElement('div');
   tabsContainer.className = 'tabs-container';
@@ -79,6 +77,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
       item.style.display = title.includes(filterText) ? '' : 'none';
     });
   });
+  
   if (isChromeExtension) {
     // Chrome extension environment: Use chrome.tabs to query open tabs
     chrome.tabs.query({}, function (tabs) {
