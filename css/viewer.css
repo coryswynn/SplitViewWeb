@@ -256,7 +256,7 @@ iframe {
     margin-bottom: 15px;
 }
 
-.extension-download-message {
+.extension-download-prompt {
     padding: 20px;
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
@@ -265,11 +265,11 @@ iframe {
     text-align: center;
 }
 
-.extension-download-message p {
+.extension-download-prompt p {
     margin: 0 0 10px 0;
 }
 
-.extension-download-message a {
+.extension-download-prompt a {
     display: inline-block;
     background-color: #4285f4;
     color: white;
