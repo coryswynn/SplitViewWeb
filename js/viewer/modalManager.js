@@ -55,48 +55,54 @@ function populateModalWithContent(modal, activeContainerFrame) {
 
   modalBody.innerHTML = ''; // Clear previous dynamic content
 
-  // Create and add a search input field above the tabs list
-  const searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.placeholder = 'Search tabs...';
-  searchInput.className = 'modal-search-input';
-  modalBody.appendChild(searchInput);
+  // The search input is now conditional on the Chrome extension environment
+  if (isChromeExtension) {
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search tabs...';
+    searchInput.className = 'modal-search-input';
+    modalBody.appendChild(searchInput);
+
+    // Filter tabs based on search input
+    searchInput.addEventListener('keyup', () => {
+      const filterText = searchInput.value.toLowerCase();
+      const tabItems = modalBody.querySelectorAll('.modal-url-option');
+      tabItems.forEach(item => {
+        const title = item.querySelector('.tab-title').textContent.toLowerCase();
+        item.style.display = title.includes(filterText) ? '' : 'none';
+      });
+    });
+  }
 
   const tabsContainer = document.createElement('div');
   tabsContainer.className = 'tabs-container';
   modalBody.appendChild(tabsContainer);
 
-  // Filter tabs based on search input
-  searchInput.addEventListener('keyup', () => {
-    const filterText = searchInput.value.toLowerCase();
-    const tabItems = tabsContainer.querySelectorAll('.modal-url-option');
-    tabItems.forEach(item => {
-      const title = item.querySelector('.tab-title').textContent.toLowerCase();
-      item.style.display = title.includes(filterText) ? '' : 'none';
-    });
-  });
   if (isChromeExtension) {
     // Chrome extension environment: Use chrome.tabs to query open tabs
     chrome.tabs.query({}, function (tabs) {
-          const uniqueTabs = tabs.reduce((acc, current) => {
-              const x = acc.find(item => item.title === current.title);
-              if (!x) {
-                  return acc.concat([current]);
-              } else {
-                  return acc;
-              }
-          }, []);
+      const uniqueTabs = tabs.reduce((acc, current) => {
+        const x = acc.find(item => item.title === current.title);
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, []);
 
-          const sortedTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
-          appendTabsToModal(sortedTabs, tabsContainer, activeContainerFrame);
-      });
+      const sortedTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
+      appendTabsToModal(sortedTabs, tabsContainer, activeContainerFrame);
+    });
   } else {
-      // Web environment fallback: Display a static message or implement alternative logic
-      const infoText = document.createElement('p');
-      infoText.textContent = 'This is a web environment. Chrome tabs cannot be queried.';
-      tabsContainer.appendChild(infoText);
-
-      // Optionally, implement a fallback mechanism, such as displaying static links or content
+    // Web environment fallback: Display a static message or implement alternative logic
+    // Message and link to download the Chrome extension
+    const extensionMessage = document.createElement('div');
+    extensionMessage.className = 'extension-download-prompt';
+    extensionMessage.innerHTML = `
+      <p style="margin-bottom: 10px;">To enhance your experience, download the Google Docs SplitView Chrome Extension.</p>
+      <a href="https://chrome.google.com/webstore/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb" target="_blank" style="background-color: #4285F4; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">Download Extension</a>
+    `;
+    tabsContainer.appendChild(extensionMessage);
   }
 }
 
@@ -105,57 +111,57 @@ function appendTabsToModal(tabs, tabsContainer, activeContainerFrame) {
 
   // Use 'tabs' instead of 'sortedTabs'
   tabs.forEach(function (tab) {
-      // Check if the tab's URL matches Google Docs, Sheets, or Slides
-      if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
-          validTabsFound = true;
-          const tabItem = document.createElement('div');
-          tabItem.className = 'modal-url-option'; // Use your existing class for styling
+    // Check if the tab's URL matches Google Docs, Sheets, or Slides
+    if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
+      validTabsFound = true;
+      const tabItem = document.createElement('div');
+      tabItem.className = 'modal-url-option'; // Use your existing class for styling
 
-          // Create an image element for the favicon
-          const favicon = document.createElement('img');
-          favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
-          favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
-          favicon.alt = 'Favicon'; // Alternative text for accessibility
+      // Create an image element for the favicon
+      const favicon = document.createElement('img');
+      favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
+      favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
+      favicon.alt = 'Favicon'; // Alternative text for accessibility
 
-          // Create a span element for the tab's title
-          const titleSpan = document.createElement('span');
-          titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
-          titleSpan.className = 'tab-title'; // Use this class for styling
+      // Create a span element for the tab's title
+      const titleSpan = document.createElement('span');
+      titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
+      titleSpan.className = 'tab-title'; // Use this class for styling
 
-          // Create a button to open new tabs
-          const plusButton = createPlusButton(activeContainerFrame, tab.url); // Corrected to use 'activeContainerFrame'
+      // Create a button to open new tabs
+      const plusButton = createPlusButton(activeContainerFrame, tab.url); // Corrected to use 'activeContainerFrame'
 
-          // Append the favicon, title span, and plus button to the tabItem
-          tabItem.appendChild(favicon);
-          tabItem.appendChild(titleSpan);
-          tabItem.appendChild(plusButton);
+      // Append the favicon, title span, and plus button to the tabItem
+      tabItem.appendChild(favicon);
+      tabItem.appendChild(titleSpan);
+      tabItem.appendChild(plusButton);
 
-          // Event listener for clicking a tabItem
-          tabItem.addEventListener('click', () => {
-              const iframe = activeContainerFrame.querySelector('iframe');
-              if (iframe) {
-                  iframe.src = tab.url; // Update the iframe source to the selected URL
-              }
+      // Event listener for clicking a tabItem
+      tabItem.addEventListener('click', () => {
+        const iframe = activeContainerFrame.querySelector('iframe');
+        if (iframe) {
+          iframe.src = tab.url; // Update the iframe source to the selected URL
+        }
 
-              // Update the URL
-              updateBrowserURL();
+        // Update the URL
+        updateBrowserURL();
 
-              // Update the title in the toolbar
-              const titleElement = activeContainerFrame.querySelector('.url-text');
-              if (titleElement) {
-                  titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
-              }
+        // Update the title in the toolbar
+        const titleElement = activeContainerFrame.querySelector('.url-text');
+        if (titleElement) {
+          titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+        }
 
-              // Hide the modal after selection
-              closeModal(modal);
-          });
+        // Hide the modal after selection
+        closeModal(modal);
+      });
 
-          tabsContainer.appendChild(tabItem); // Append to the modal content
-      }
+      tabsContainer.appendChild(tabItem); // Append to the modal content
+    }
   });
 
   if (!validTabsFound) {
-      tabsContainer.textContent = 'No Google Docs, Sheets, or Slides tabs found.';
+    tabsContainer.textContent = 'No Google Docs, Sheets, or Slides tabs found.';
   }
 }
 
