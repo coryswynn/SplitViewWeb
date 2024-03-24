@@ -99,7 +99,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
     const extensionMessage = document.createElement('div');
     extensionMessage.className = 'extension-download-prompt';
     extensionMessage.innerHTML = `
-      <p>Get the full functionality of Google Docs SplitView by adding it to Chrome.</p>
+      <p>⚠ Get the full functionality of Google Docs SplitView, including dynamic document switching by adding it to Chrome.</p>
       <a href="https://chrome.google.com/webstore/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb" 
          target="_blank" 
          rel="noopener noreferrer" 
