@@ -64,7 +64,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
     modalBody.appendChild(searchInput);
   } else {
 
-  }
+  };
 
   const tabsContainer = document.createElement('div');
   tabsContainer.className = 'tabs-container';
