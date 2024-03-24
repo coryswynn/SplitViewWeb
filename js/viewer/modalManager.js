@@ -99,8 +99,11 @@ function populateModalWithContent(modal, activeContainerFrame) {
     const extensionMessage = document.createElement('div');
     extensionMessage.className = 'extension-download-prompt';
     extensionMessage.innerHTML = `
-      <p style="margin-bottom: 10px;">To enhance your experience, download the Google Docs SplitView Chrome Extension.</p>
-      <a href="https://chrome.google.com/webstore/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb" target="_blank" style="background-color: #4285F4; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none;">Download Extension</a>
+      <p>Get the full functionality of Google Docs SplitView by adding it to Chrome.</p>
+      <a href="https://chrome.google.com/webstore/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb" 
+         target="_blank" 
+         rel="noopener noreferrer" 
+         class="download-extension-btn">Add to Chrome</a>
     `;
     tabsContainer.appendChild(extensionMessage);
   }
