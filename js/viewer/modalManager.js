@@ -206,8 +206,13 @@ export function setupModalDismissal(modal, closeModalCallback) {
 // Planned functionality to update URL bar for easy sharing
 
 export function updateBrowserURL() {
-  const newURL = 'viewer.html?urls=' + encodeAndJoinFrameURLs();
-
+  const newURL = '';
+  if (isChromeExtension) {
+    newURL = 'viewer.html?urls=' + encodeAndJoinFrameURLs();
+  } else {
+    newURL = '?urls=' + encodeAndJoinFrameURLs();
+  }
+  
   const state = { page: newURL };
   const title = ''; // Optional: You can set a title for the new state
   const url = newURL; // The new URL you want to show in the browser
