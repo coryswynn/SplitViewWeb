@@ -59,6 +59,8 @@ iframe {
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ellipsis for overflow */
     white-space: nowrap; /* Keep the URL in one line */
+    font-size: 12px; /* Standard font size for readability */
+
 }
 
 .copy-url-button, .pop-out-button, .fullscreen-button, .close-frame-button, .duplicate-frame-button {
