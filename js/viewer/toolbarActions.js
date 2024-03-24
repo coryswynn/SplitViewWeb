@@ -60,6 +60,27 @@ function createDragHandle() {
     return dragHandle;
 }
 
+function fetchProxy(url, options) {
+  const proxies = [
+    'https://cors-anywhere.herokuapp.com/',
+    'https://yacdn.org/proxy/',
+    'https://api.codetabs.com/v1/proxy/?quest='
+  ];
+  let proxyIndex = 0;
+
+  const attemptFetch = (index) => fetch(proxies[index] + url, options)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP status ${res.status}`);
+      return res;
+    })
+    .catch(error => {
+      if (index >= proxies.length - 1) throw error;
+      return attemptFetch(index + 1);
+    });
+
+  return attemptFetch(proxyIndex);
+}
+
 function createUrlTitle(url, containerFrame) {
     const urlTitle = document.createElement('span');
     urlTitle.className = 'url-text';
@@ -78,12 +99,7 @@ function createUrlTitle(url, containerFrame) {
         });
     } else {
         // Fallback for web: Fetch the HTML content to parse the title
-        fetch(url).then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok.');
-            }
-            return response.text();
-        })
+        fetchProxy(url).then(response => response.text())
         .then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
