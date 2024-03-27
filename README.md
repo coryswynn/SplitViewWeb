@@ -33,6 +33,7 @@ Enhance your productivity with `Google Docs SplitView`, a Chrome Extension that 
 
 - **Saved Documents**: A planned feature to quickly save and access documents for future use.
 - **Google Drive Integration**: Upcoming connectivity to Google Drive will enable direct access to your drive files within the SplitView.
+- **File Sharing**: Integrated file sharing from within SplitView.
 
 ## Known Limitations
 
