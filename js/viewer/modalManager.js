@@ -13,6 +13,8 @@ import { createToolbar } from './toolbarActions.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
+// Utilize localStorage to manage saved tabs
+const savedTabsKey = 'savedTabs'; // Key used in localStorage
 
 // Function to close the modal
 export function closeModal(modal) {
@@ -37,49 +39,175 @@ export function clearAndDisplayModal(modal, activeContainerFrame, displayModalCa
 export function displayModal(modal, activeContainerFrame) {
   if (!activeContainerFrame) return; // Ensure there's an active container frame
 
+  // Assuming the sidebar element is identifiable by the class name 'sidebar'
+  const sidebar = document.querySelector('.sidebar');
+  const isSidebarClosed = sidebar.classList.contains('close');
+
+  // Determine the sidebar's width based on its open or closed state
+  // Using 260px for open and 78px for closed as indicated in your CSS
+  const sidebarWidth = isSidebarClosed ? 78 : 260;
+
   const rect = activeContainerFrame.getBoundingClientRect();
   modal.style.position = 'absolute';
   modal.style.top = `${rect.top}px`;
-  modal.style.left = `${rect.left}px`;
+  modal.style.left = `${rect.left - sidebarWidth}px`;
   modal.style.width = `${rect.width}px`;
   modal.style.height = `${rect.height}px`;
   modal.style.display = 'block';
 
   populateModalWithContent(modal, activeContainerFrame);
+  updateSavedTabsDisplay(); // Ensure the saved tabs are up-to-date
+}
+
+function getSavedTabs() {
+  return JSON.parse(localStorage.getItem(savedTabsKey)) || [];
+}
+
+function updateSavedTabsDisplay() {
+  const savedTabsContainer = document.querySelector('.saved-tabs-container');
+  savedTabsContainer.innerHTML = ''; // Clear existing saved tabs
+
+  const savedTabs = getSavedTabs();
+  if (savedTabs.length > 0) {
+    savedTabs.forEach(tab => {
+      const tabItem = document.createElement('div');
+      tabItem.className = 'modal-url-option'; // Same class as other tab items for consistent styling
+
+      // Implement click functionality for switching or adding a new frame
+      tabItem.onclick = () => {
+        // Your logic here for switching or adding the tab as a new frame
+        addNewFrame(tab.url);
+      };
+
+      // Favicon
+      const favicon = document.createElement('img');
+      favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
+      favicon.className = 'favicon'; // Ensure this matches the class used for other tab items
+      favicon.alt = 'Favicon';
+      tabItem.appendChild(favicon);
+
+      // Title
+      const titleSpan = document.createElement('span');
+      titleSpan.textContent = tab.title;
+      titleSpan.className = 'tab-title'; // Ensure this matches the class used for other tab items
+      tabItem.appendChild(titleSpan);
+
+      // Delete Button
+      const deleteButton = document.createElement('button');
+      deleteButton.innerHTML = '<i class="bx bx-trash"></i>'; // Using Boxicons for the delete icon
+      deleteButton.className = 'delete-button'; // Optionally, match this with your other action buttons
+      deleteButton.onclick = () => {
+        event.stopPropagation(); // Prevent click from bubbling to the tab item's click event
+        deleteSavedTab(tab.url);
+        updateSavedTabsDisplay(); // Refresh the display after deletion
+      };
+      tabItem.appendChild(deleteButton);
+
+      savedTabsContainer.appendChild(tabItem);
+      console.log(getSavedTabs()); 
+    });
+  } else {
+    savedTabsContainer.textContent = 'No saved tabs.';
+  }
+}
+
+
+
+function saveTab(url, title) {
+  const savedTabs = getSavedTabs();
+  const tab = { url, title }; // Create an object representing the tab
+  if (!savedTabs.some(savedTab => savedTab.url === url)) {
+    savedTabs.push(tab);
+    localStorage.setItem(savedTabsKey, JSON.stringify(savedTabs));
+    updateSavedTabsDisplay(); // Refresh the display of saved tabs
+  } else {
+    alert("Tab is already saved.");
+  }
+}
+
+function deleteSavedTab(url) {
+  let savedTabs = getSavedTabs();
+  savedTabs = savedTabs.filter(tab => tab.url !== url);
+  localStorage.setItem(savedTabsKey, JSON.stringify(savedTabs));
 }
 
 // Function to populate modal with content, such as iframe titles
 function populateModalWithContent(modal, activeContainerFrame) {
   const modalBody = modal.querySelector('.modal-body');
-  const iframeContainer = activeContainerFrame.querySelector('iframe');
-
   modalBody.innerHTML = ''; // Clear previous dynamic content
 
-  // The search input is now conditional on the Chrome extension environment
+  // Create container for open tabs (if using Chrome extension) or static message
+  const tabsContainer = document.createElement('div');
+  tabsContainer.className = 'tabs-container';
+  modalBody.appendChild(tabsContainer);
+
+  // Populate container with open tabs or static message
+  populateOpenTabsOrMessage(tabsContainer, activeContainerFrame);
+
+  // Section for saved tabs
+  const savedTabsSection = document.createElement('div');
+  savedTabsSection.className = 'saved-tabs-section';
+  modalBody.appendChild(savedTabsSection);
+
+  // Title for the saved tabs section
+  const savedTabsTitle = document.createElement('h3');
+  savedTabsTitle.textContent = 'Saved Tabs';
+  savedTabsSection.appendChild(savedTabsTitle);
+
+  // Container for saved tabs
+  const savedTabsContainer = document.createElement('div');
+  savedTabsContainer.className = 'saved-tabs-container';
+  savedTabsSection.appendChild(savedTabsContainer);
+
+  // Fetch and display saved tabs
+  const savedTabs = getSavedTabs();
+  if (savedTabs.length > 0) {
+    savedTabs.forEach(tab => {
+      const tabItem = document.createElement('div');
+      tabItem.className = 'modal-url-option saved-tab';
+      
+      // Create a span for the tab title
+      const titleSpan = document.createElement('span');
+      titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');      // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
+      titleSpan.className = 'tab-title'; // Add class for styling
+      tabItem.appendChild(titleSpan);
+
+      // Create and append the delete button
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+      deleteButton.className = 'delete-button'; // Optionally, add class for styling
+      deleteButton.onclick = () => {
+        deleteSavedTab(tab.url);
+        tabItem.remove(); // Remove this tab item from the modal
+      };
+      tabItem.appendChild(deleteButton);
+
+      savedTabsContainer.appendChild(tabItem);
+    });
+  } else {
+    savedTabsContainer.textContent = 'No saved tabs.';
+  }
+}
+
+function populateOpenTabsOrMessage(tabsContainer, activeContainerFrame) {
+  // The search input and tab querying logic previously inside populateModalWithContent
   if (isChromeExtension) {
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search tabs...';
     searchInput.className = 'modal-search-input';
-    modalBody.appendChild(searchInput);
+    tabsContainer.appendChild(searchInput);
 
     // Filter tabs based on search input
     searchInput.addEventListener('keyup', () => {
       const filterText = searchInput.value.toLowerCase();
-      const tabItems = modalBody.querySelectorAll('.modal-url-option');
+      const tabItems = tabsContainer.querySelectorAll('.modal-url-option');
       tabItems.forEach(item => {
         const title = item.querySelector('.tab-title').textContent.toLowerCase();
         item.style.display = title.includes(filterText) ? '' : 'none';
       });
     });
-  }
 
-  const tabsContainer = document.createElement('div');
-  tabsContainer.className = 'tabs-container';
-  modalBody.appendChild(tabsContainer);
-
-  if (isChromeExtension) {
-    // Chrome extension environment: Use chrome.tabs to query open tabs
     chrome.tabs.query({}, function (tabs) {
       const uniqueTabs = tabs.reduce((acc, current) => {
         const x = acc.find(item => item.title === current.title);
@@ -94,12 +222,11 @@ function populateModalWithContent(modal, activeContainerFrame) {
       appendTabsToModal(sortedTabs, tabsContainer, activeContainerFrame);
     });
   } else {
-    // Web environment fallback: Display a static message or implement alternative logic
-    // Message and link to download the Chrome extension
+    // Web environment fallback: Static message
     const extensionMessage = document.createElement('div');
     extensionMessage.className = 'extension-download-prompt';
     extensionMessage.innerHTML = `
-      <p>⚠ You're using webview. Get the full functionality of Google Docs SplitView by adding it to Chrome.</p>
+      <p>⚠ You're using webview. Get the full functionality by adding the Chrome extension.</p>
       <a href="https://chrome.google.com/webstore/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb" 
          target="_blank" 
          rel="noopener noreferrer" 
@@ -108,6 +235,7 @@ function populateModalWithContent(modal, activeContainerFrame) {
     tabsContainer.appendChild(extensionMessage);
   }
 }
+
 
 function appendTabsToModal(tabs, tabsContainer, activeContainerFrame) {
   let validTabsFound = false;
@@ -134,10 +262,13 @@ function appendTabsToModal(tabs, tabsContainer, activeContainerFrame) {
       // Create a button to open new tabs
       const plusButton = createPlusButton(activeContainerFrame, tab.url); // Corrected to use 'activeContainerFrame'
 
+      const saveButton = createSaveButton(tab.url, tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''));
+
       // Append the favicon, title span, and plus button to the tabItem
       tabItem.appendChild(favicon);
       tabItem.appendChild(titleSpan);
       tabItem.appendChild(plusButton);
+      tabItem.appendChild(saveButton);
 
       // Event listener for clicking a tabItem
       tabItem.addEventListener('click', () => {
@@ -170,17 +301,22 @@ function appendTabsToModal(tabs, tabsContainer, activeContainerFrame) {
 
 // Function to adjust modal position based on the active container frame's bounds
 export function adjustModalPosition(modal, activeContainerFrame) {
-  if (!modal || !activeContainerFrame) {
-    console.log('No modal');
-    console.error('Modal or activeContainerFrame is not defined.');
-    return;
-  }
+  if (!activeContainerFrame) return; // Ensure there's an active container frame
+
+  console.log('adjusting NOW');
+  // Assuming the sidebar element is identifiable by the class name 'sidebar'
+  const sidebar = document.querySelector('.sidebar');
+  const isSidebarClosed = sidebar.classList.contains('close');
+
+  // Determine the sidebar's width based on its open or closed state
+  // Using 260px for open and 78px for closed as indicated in your CSS
+  const sidebarWidth = isSidebarClosed ? 78 : 260;
 
   // console.log('Starting adjustment of modal');
   const rect = activeContainerFrame.getBoundingClientRect();
   modal.style.position = 'absolute';
   modal.style.top = `${rect.top}px`;
-  modal.style.left = `${rect.left}px`;
+  modal.style.left = `${rect.left - sidebarWidth}px`;
   modal.style.width = `${rect.width}px`;
   modal.style.height = `${rect.height}px`;
   modal.style.display = 'block';
@@ -256,6 +392,19 @@ function createPlusButton(iframeContainer, url) {
 
   };
   return plusButton;
+}
+
+function createSaveButton(url, title) {
+  const saveButton = document.createElement('button');
+  saveButton.className = 'save-button';
+  saveButton.innerHTML = '<i class="bx bx-save"></i>'; // BoxIcons plus icon
+  saveButton.onclick = (event) => {
+    event.stopPropagation(); // Prevent the click from bubbling up to parent elements
+    saveTab(url, title); // Pass an object with url and title to match `saveTab` function's parameter
+    updateSavedTabsDisplay(); // Refresh the saved tabs display
+
+  };
+  return saveButton;
 }
 
 export function addNewFrame(url) {
