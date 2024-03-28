@@ -9,7 +9,8 @@ import {
     clearAndDisplayModal,
     displayModal,
     adjustModalPosition,
-    setupModalDismissal
+    setupModalDismissal,
+    encodeAndJoinFrameURLs
   } from './modalManager.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
@@ -38,6 +39,9 @@ export function createToolbar(containerFrame, url) {
 
     const popOutButton = createPopOutButton(url);
     toolbar.appendChild(popOutButton);
+
+    const shareButton = createShareButton('11ApBrQRsfZY3U889Scz0pX0w1N8ZrFSxmio5Gti1KPY');
+    toolbar.appendChild(shareButton);
 
     const fullscreenButton = createFullscreenButton(containerFrame);
     toolbar.appendChild(fullscreenButton);
@@ -159,6 +163,28 @@ function createPopOutButton(url) {
         window.open(url, '_blank');
     };
     return popOutButton;
+}
+
+function createShareButton(fileId) {
+    const shareButton = document.createElement('button');
+    shareButton.className = 'share-button';
+    shareButton.title = 'Share Frame';
+    shareButton.innerHTML = '<i class="bx bx-share bx-flip-horizontal"></i>'; // BoxIcons external link icon
+
+    shareButton.onclick = () => {
+        console.log("Share button clicked.");
+
+        let newURL;
+        newURL = 'https://coryswynn.github.io/SplitViewWeb/?urls=' + encodeAndJoinFrameURLs();
+        
+        const state = { page: newURL };
+        const title = ''; // Optional: You can set a title for the new state
+        const url = newURL; // The new URL you want to show in the browser
+
+        window.open(url, '_blank');
+    };
+
+    return shareButton;
 }
 
 function createFullscreenButton(containerFrame) {
