@@ -10,6 +10,7 @@ Enhance your productivity with `Google Docs SplitView`, a Chrome Extension that 
 - **Drag-and-Drop Window Swapping**: Reorganize open documents within a splitview with an intuitive drag-and-drop interface.
 - **Flexible Frame Management**: Open and close document frames on demand, with no limitations on the number of frames you can manage.
 - **Dynamic URL State**: URLs update as you open and close frames for each SplitView, facilitating the reopening and sharing of your current layout.
+- **Saved Documents**: Save tabs as favorites and recall them without opening the original document first
 
 ## Installation
 
