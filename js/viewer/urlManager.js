@@ -33,7 +33,7 @@ export function fetchAndDisplayTitle(url, containerFrame) {
     })
     .catch(error => {
       console.error('Error fetching or parsing URL:', error);
-      updateContainerFrameTitle(containerFrame, 'Title unavailable');
+      updateContainerFrameTitle(containerFrame, 'Title Xunavailable');
     });
 }
 
