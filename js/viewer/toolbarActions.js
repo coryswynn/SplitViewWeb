@@ -99,15 +99,13 @@ function createUrlTitle(url, containerFrame) {
                 const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
                 updateContainerFrameTitle(containerFrame, newTitle);
             } else {
-        // Fallback for web: Use iframe for cross-origin title fetching
-        fetchTitleUsingCustomLoader(url)
-            .then((title) => {
-                updateContainerFrameTitle(containerFrame, title);
-            })
-            .catch((error) => {
-                console.error('Error fetching title:', error);
-                updateContainerFrameTitle(containerFrame, 'Title unavailable'); // Fallback title if fetch fails
-            });
+                throw new Error('Title tag not found.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching or parsing URL:', error);
+            updateContainerFrameTitle(containerFrame, 'Title unavailable'); // Fallback title if both methods fail
+        });
     }
         
     // Add click event listener for the URL title
@@ -231,9 +229,3 @@ function createCloseButton(containerFrame) {
     };
     return closeButton;
 }
-
-async function fetchTitleUsingCustomLoader(url) {
-    return new Promise((resolve, reject) => {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
